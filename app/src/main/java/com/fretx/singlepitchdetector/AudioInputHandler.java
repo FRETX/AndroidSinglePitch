@@ -1,21 +1,15 @@
 package com.fretx.singlepitchdetector;
 
-import android.media.AudioRecord;
-import android.media.MediaRecorder;
-import android.util.Log;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import static android.content.ContentValues.TAG;
-
 /**
  * Created by Onur Babacan on 9/23/16.
  */
 
-//TODO: minimum buffer sizes are way too big. stream them to audio analyzers in smaller chunks
+
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
+import android.util.Log;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AudioInputHandler implements Runnable {
 
@@ -67,8 +61,6 @@ public class AudioInputHandler implements Runnable {
             throw new IllegalArgumentException("Buffer size must be at least " + (minBufferSize *2));
         }
     }
-
-
 
     public void run(){
         while(!isFinished){

@@ -9,9 +9,4 @@ public interface AudioAnalyzer {
     void process(AudioData audioData);
     void processingFinished();
 
-//    int samplingFrequency = 44100;
-//    int frameShift;
-//    int frameLength;
-//    int head;
-
 }
