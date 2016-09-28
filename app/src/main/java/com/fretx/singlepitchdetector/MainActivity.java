@@ -16,8 +16,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //TODO: Dynamic handling of parameters
-        audioInputHandler = new AudioInputHandler(44100,7200);
-        yin = new PitchDetectorYin(44100,1764,882,0.10);
+
+        int maxFs = AudioInputHandler.getMaxSamplingFrequency();
+        int minBufferSize = AudioInputHandler.getMinBufferSize(maxFs);
+        audioInputHandler = new AudioInputHandler(maxFs,minBufferSize);
+        int minF0 = 60;
+        int frameLength = (int)(2*(float)maxFs/(float)minF0);
+        float frameOverlap = 0.5f;
+        float yinThreshold = 0.10f;
+        //We set the lower bound of pitch detection (minF0) to 60Hz considering the guitar strings
+        //The minimum buffer size for YIN must be minT0 * 2, where minT0 is the wavelength corresponding to minF0
+        //So the frame length for YIN in samples is: (1/minF0) * 2 * maxFs
+        yin = new PitchDetectorYin(maxFs,frameLength,Math.round((float)frameLength*frameOverlap),yinThreshold);
         audioInputHandler.addAudioAnalyzer(yin);
         audioThread = new Thread(audioInputHandler,"Audio Thread");
         audioThread.start();
@@ -29,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     while (!isInterrupted()) {
+                        //Even though YIN is producing a pitch estimate every 16ms, that's too fast for the UI on some devices
+                        //So we set it to 25ms, which is good enough
                         Thread.sleep(25);
                         runOnUiThread(new Runnable() {
                             @Override
