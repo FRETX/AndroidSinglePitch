@@ -26,7 +26,7 @@ public class PitchDetectorYin implements AudioAnalyzer {
     private final float[] yinBuffer;
 
     protected PitchDetectionResult result;
-    private final int nLastValues = 10;
+    private final int nLastValues = 5;
     protected float[] lastValues = new float[nLastValues];
     protected float medianPitch = -1;
 
