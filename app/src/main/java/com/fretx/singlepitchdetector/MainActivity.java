@@ -32,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
         audioThread = new Thread(audioInputHandler,"Audio Thread");
         audioThread.start();
 
-//        Log.d("MainActivity", Float.toString(yin.result.getPitch()));
 
         Thread t = new Thread() {
             @Override
@@ -46,11 +45,16 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 TextView pitchText = (TextView) findViewById(R.id.pitchText );
+                                TextView medianText = (TextView) findViewById(R.id.medianPitch );
                                 float pitch = yin.result.getPitch();
                                 if(pitch == -1){
                                     pitchText.setText("");
+                                    medianText.setText("");
                                 } else{
                                     pitchText.setText( Integer.toString((int) Math.round(pitch)) + " Hz");
+                                    if(yin.medianPitch > 0){
+                                        medianText.setText( Integer.toString((int) Math.round(yin.medianPitch)) + " Hz");
+                                    }
                                 }
                             }
                         });

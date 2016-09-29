@@ -20,7 +20,17 @@
         android:textSize="36sp"
         android:textAlignment="center"
         android:textStyle="normal|bold"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_centerInParent="true"/>
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
+        android:id="@+id/medianPitch"
+        android:layout_below="@+id/pitchText"
+        android:layout_centerHorizontal="true"
+        android:textAppearance="@android:style/TextAppearance.Material.Medium"
+        android:textAlignment="center"/>
+
 </RelativeLayout>

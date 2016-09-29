@@ -1,6 +1,9 @@
 package com.fretx.singlepitchdetector;
 
 import android.support.annotation.Nullable;
+import android.util.Log;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -23,11 +26,14 @@ public class PitchDetectorYin implements AudioAnalyzer {
     private final float[] yinBuffer;
 
     protected PitchDetectionResult result;
+    private final int nLastValues = 10;
+    protected float[] lastValues = new float[nLastValues];
+    protected float medianPitch = -1;
 
     //TODO: parameter-less constructor with default values
     private static final double DEFAULT_THRESHOLD = 0.20;
     private static final int DEFAULT_SAMPLING_FREQUENCY = 44100;
-    //We set the lower bound of detection to 50Hz. At least two pitch periods are needed
+    //We arbitrarily set the lower bound of detection to 50Hz. At least two pitch periods are needed
     //So the default frame length is: (1/50) * 44100 * 2 = 1764
     public static final int DEFAULT_FRAME_LENGTH = 1764;
     //An overlap of 50% is good enough for real-time applications
@@ -98,6 +104,7 @@ public class PitchDetectorYin implements AudioAnalyzer {
         this.yinBuffer = new float[frameLength / 2];
         this.tempBuffer = new short[frameLength];
         this.result = new PitchDetectionResult();
+        Arrays.fill(lastValues,-1);
     }
 
     public PitchDetectionResult getPitch(final short[] audioBufferShort) {
@@ -121,9 +128,35 @@ public class PitchDetectorYin implements AudioAnalyzer {
         }
         result.setPitch(pitchInHertz);
 
+        for (int i = lastValues.length -1 ; i > 0; i--) {
+            lastValues[i] = lastValues[i-1];
+        }
+        lastValues[0] = pitchInHertz;
+        updateMedianPitch();
+
         return result;
     }
 
+    private void updateMedianPitch(){
+        int pitchedValuesCount = 0;
+        for (int i = 0; i < lastValues.length ; i++) {
+            if(lastValues[i] > 0){
+                pitchedValuesCount++;
+            }
+        }
+        if(pitchedValuesCount > 3){
+            float[] sortedPitchValues = new float[pitchedValuesCount];
+            int y = 0;
+            for (int i = 0; i < lastValues.length ; i++) {
+                if(lastValues[i] > 0){
+                    sortedPitchValues[y] = lastValues[i];
+                    y++;
+                }
+            }
+            Arrays.sort(sortedPitchValues);
+            medianPitch = PitchDetectorYin.median(sortedPitchValues);
+        } else medianPitch = -1;
+    }
 
     private void difference(final float[] audioBuffer) {
         Arrays.fill(yinBuffer,0);
