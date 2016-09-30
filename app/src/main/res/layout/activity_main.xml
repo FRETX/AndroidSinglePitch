@@ -69,7 +69,6 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/pitchText"
-        android:textAppearance="@android:style/TextAppearance.Material.Large"
         android:textSize="36sp"
         android:textStyle="normal|bold"
         android:textAlignment="viewStart"/>
@@ -80,17 +79,16 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/medianPitch"
-        android:textAppearance="@android:style/TextAppearance.Material.Medium"
+        android:textSize="16sp"
         />
 
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/targetPitchText"
-        android:textAppearance="@android:style/TextAppearance.Material.Large"
         android:textSize="36sp"
         android:textStyle="normal|bold"
-        android:textAlignment="viewStart"/>
+        />
 
     <com.fretx.singlepitchdetector.PitchView
         android:layout_width="fill_parent"

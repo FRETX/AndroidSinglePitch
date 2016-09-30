@@ -18,6 +18,7 @@ public class PitchView extends View {
     private float centerPitch, currentPitch;
     private int width, height;
     private final Paint paint = new Paint();
+    protected double pitchRangeInCents = 200;
 
     public PitchView(Context context) {
         super(context);
@@ -71,14 +72,14 @@ public class PitchView extends View {
 
         double angleOfIndicator = Double.NaN;
         //Draw the line between an interval of one semitone lower and one semitone higher than center pitch
-        if(currentPitchInCents > centerPitchInCents + 100){
+        if(currentPitchInCents > centerPitchInCents + pitchRangeInCents){
             //Draw a straight line to the right
             angleOfIndicator = 90;
-        } else if (currentPitchInCents < centerPitchInCents - 100){
+        } else if (currentPitchInCents < centerPitchInCents - pitchRangeInCents){
             //Draw a straight line to the left
             angleOfIndicator = -90;
         } else {
-            angleOfIndicator = (difference / 100) * 90;
+            angleOfIndicator = (difference / pitchRangeInCents) * 90;
         }
 
 
