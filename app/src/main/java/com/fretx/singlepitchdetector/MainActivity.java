@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean autoDetectEnabled = true;
     private float [] tuning = {82.41f,110.00f,146.83f,196.00f,246.94f,329.63f};
 
+    //This is arbitrary, so why not The Answer to Life, Universe, and Everything?
     private final int PERMISSION_CODE_RECORD_AUDIO = 42;
 
     @Override
