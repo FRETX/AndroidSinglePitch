@@ -95,6 +95,8 @@ public class PitchView extends View {
 
         //convert to radians from degrees
         angleOfIndicator = Math.toRadians(angleOfIndicator);
+        //reverse direction to match the left-to-right increasing frequency
+        angleOfIndicator *= -1;
 
         canvas.drawLine(halfWidth, height,
                 halfWidth + (float)Math.sin(angleOfIndicator) * height * 0.9f,
