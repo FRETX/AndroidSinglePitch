@@ -1,44 +1,89 @@
 package com.fretx.singlepitchdetector;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import java.util.Objects;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     public AudioInputHandler audioInputHandler;
-    protected Thread audioThread;
+    private Thread audioThread;
+    private Thread guiThread;
+    private boolean processingIsRunning = false;
     protected PitchDetectorYin yin;
 
     private TextView pitchText;
     private TextView medianText;
     private PitchView pitchView;
     private TextView targetPitch;
-    private boolean autoDetectEnabled;
-    float [] tuning;
+    private boolean autoDetectEnabled = true;
+    private float [] tuning = {82.41f,110.00f,146.83f,196.00f,246.94f,329.63f};
+
+    private final int PERMISSION_CODE_RECORD_AUDIO = 42;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("onCreate","method called");
         setContentView(R.layout.activity_main);
-
         //UI references
         initGui();
-        autoDetectEnabled = true;
+    }
 
-        final float [] tuning = {82.41f,110.00f,146.83f,196.00f,246.94f,329.63f};
+    protected void onStart(){
+        super.onStart();
+        Log.d("onStart","method called");
+    }
 
+
+    protected void onStop(){
+        super.onStop();
+        Log.d("onStop","method called");
+//        stopProcessing();
+        //TODO: pause/destroy? audio thread
+    }
+
+    protected void onPause(){
+        super.onPause();
+        Log.d("onPause","method called");
+//        stopProcessing();
+    }
+
+    protected void onResume(){
+        //TODO: For some reason this doesn't get called when you switch apps
+        //Only gets called when the app is created for the first time
+        super.onResume();
+        Log.d("onResume","method called");
+        //Ask for runtime permissions
+        boolean permissionsGranted = askForPermissions();
+        Log.d("onResume","permissionsGranted: " + permissionsGranted);
+        if(permissionsGranted) {
+            Log.d("onResume","resuming");
+            startProcessing();
+        }
+
+        //TODO: resume/restart? audio thread
+    }
+
+    protected void onDestroy(){
+        super.onDestroy();
+        Log.d("onDestroy","method called");
+        stopProcessing();
+
+    }
+
+
+    //Processing handlers
+    private void startAudioThread(){
         //Audio Parameters
         int maxFs = AudioInputHandler.getMaxSamplingFrequency();
         int minBufferSize = AudioInputHandler.getMinBufferSize(maxFs);
@@ -53,15 +98,15 @@ public class MainActivity extends AppCompatActivity {
 
         //Create new pitch detector
         yin = new PitchDetectorYin(maxFs,frameLength,Math.round((float)frameLength*frameOverlap),yinThreshold);
-        //Patch it to audii handler
+        //Patch it to audio handler
         audioInputHandler.addAudioAnalyzer(yin);
         //Start the audio thread
         audioThread = new Thread(audioInputHandler,"Audio Thread");
         audioThread.start();
+    }
 
-
-
-        Thread t = new Thread() {
+    private void startGuiThread(){
+        guiThread = new Thread() {
             @Override
             public void run() {
                 try {
@@ -104,30 +149,53 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-        t.start();
+        guiThread.start();
     }
 
-    protected void onPause(){
-        super.onPause();
-        //TODO: pause/destroy? audio thread
-    }
-
-    protected void onResume(){
-        super.onResume();
-        //TODO: resume/restart? audio thread
-    }
-
-    protected void onDestroy(){
-        audioInputHandler.onDestroy();
-        try {
-            audioThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    private void stopProcessing(){
+        Log.d("stopProcessing","method called");
+        if(processingIsRunning){
+            if(audioInputHandler != null){
+                audioInputHandler.onDestroy();
+                audioInputHandler = null;
+            }
+            if(yin != null){
+                yin = null;
+            }
+            if(audioThread != null){
+                try {
+                    audioThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                audioThread = null;
+            }
+            if(guiThread != null){
+                try {
+                    guiThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                guiThread = null;
+            }
+            processingIsRunning = false;
+            Log.d("stopProcessing","processes stopped");
         }
-        super.onDestroy();
+
     }
 
+    private void startProcessing(){
+        Log.d("startProcessing","method called");
+        if(!processingIsRunning){
+            startAudioThread();
+            startGuiThread();
+            processingIsRunning = true;
+            Log.d("startProcessing","processes started");
+        }
 
+    }
+
+    //GUI Bindings
     private void initGui(){
         pitchText = (TextView) findViewById(R.id.pitchText );
         medianText = (TextView) findViewById(R.id.medianPitch);
@@ -186,6 +254,45 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+
+    //Permissions
+    private boolean askForPermissions(){
+
+        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
+        if (result == PackageManager.PERMISSION_GRANTED){
+//            Toast.makeText(MainActivity.this,"You already have the permission",Toast.LENGTH_LONG).show();
+            return true;
+        } else {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.RECORD_AUDIO)){
+                //If the user has denied the permission previously your code will come to this block
+                //Here you can explain why you need this permission
+                //Explain here why you need this permission
+            }
+            //And finally ask for the permission
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSION_CODE_RECORD_AUDIO);
+            return false;
+        }
+    }
+
+    //This method will be called when the user will tap on allow or deny
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        //Checking the request code of our request
+        if(requestCode == PERMISSION_CODE_RECORD_AUDIO){
+            //If permission is granted
+            if(grantResults.length >0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                //Displaying a toast
+//                Toast.makeText(this,"Permission granted now you can record audio",Toast.LENGTH_LONG).show();
+                startProcessing();
+            }else{
+                //Displaying another toast if permission is not granted
+                Toast.makeText(this,"FretX Tuner cannot work without this permission. Restart the app to ask for it again.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+
+    //Utility
     private static int getMinIndex(float[] array) {
         float minValue = Float.MAX_VALUE;
         int minIndex = -1;
@@ -197,6 +304,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return minIndex;
     }
+
 
 }
 

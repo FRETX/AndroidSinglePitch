@@ -10,7 +10,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 
@@ -80,18 +79,11 @@ public class PitchView extends View {
             angleOfIndicator = -90;
         } else {
             angleOfIndicator = (difference / 100) * 90;
-//            if(angleOfIndicator >= 0){
-//                angleOfIndicator = 90 - angleOfIndicator;
-//            } else {
-//                angleOfIndicator = (angleOfIndicator*-1) + 90;
-//            }
         }
 
-        Log.d("PitchView",Double.toString(angleOfIndicator));
 
         //arbitrary mapping for better display
         angleOfIndicator = (Math.exp((90-Math.abs(angleOfIndicator)) / -30)-0.0498) * 90 / 85.52 * 90 * Math.signum(angleOfIndicator);
-
 
         //convert to radians from degrees
         angleOfIndicator = Math.toRadians(angleOfIndicator);
