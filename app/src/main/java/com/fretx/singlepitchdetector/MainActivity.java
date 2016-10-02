@@ -14,6 +14,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Arrays;
+
 public class MainActivity extends AppCompatActivity {
 
     public AudioInputHandler audioInputHandler;
@@ -300,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
     private static int getMinIndex(float[] array) {
         float minValue = Float.MAX_VALUE;
         int minIndex = -1;
-        for (int i = 1; i < array.length; i++) {
+        for (int i = 0; i < array.length; i++) {
             if (array[i] < minValue) {
                 minValue = array[i];
                 minIndex = i;
